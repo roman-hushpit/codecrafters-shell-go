@@ -17,14 +17,19 @@ func main() {
 		if input.Scan() {
 			command := input.Text()
 			arguments := strings.SplitN(command, " ", 2)
-			fnc, ok := cmd.BuiltinsMap[arguments[0]]
+			commandName := arguments[0]
+			var commandArgumentsString string
+			if len(arguments) > 1 {
+				commandArgumentsString = arguments[1]
+			}
+			fnc, ok := cmd.BuiltinsMap[commandName]
 			if !ok {
-				executable, err := cmd.FindExecutable(arguments[0])
+				_, err := cmd.FindExecutable(commandName)
 				if err != nil {
 					fmt.Printf("%s: command not found\n", command)
 					continue
 				}
-				command := exec.Command(executable, arguments[1:]...)
+				command := exec.Command(commandName, strings.Split(commandArgumentsString, " ")...)
 				command.Stderr = os.Stderr
 				command.Stdout = os.Stdout
 				err = command.Run()
