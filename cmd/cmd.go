@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 type Builtins map[string]func() error
@@ -23,6 +24,22 @@ func typeFunc(args ...string) error {
 		fmt.Printf("%s is a shell builtin\n", functionName)
 		return nil
 	}
+	env, b := os.LookupEnv(`PATH`)
+	if !b {
+		fmt.Printf("%s: not found\n", functionName)
+		return nil
+	}
+
+	for _, path := range strings.Split(env, ":") {
+		fullPath := path + "/" + functionName
+		if fileInfo, err := os.Stat(fullPath); err == nil {
+			if fileInfo.Mode().Perm()&0111 != 0 {
+				fmt.Printf("%s is %s\n", functionName, fullPath)
+				return nil
+			}
+		}
+	}
+
 	fmt.Printf("%s: not found\n", functionName)
 	return nil
 }
