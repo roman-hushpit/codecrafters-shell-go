@@ -26,7 +26,7 @@ func typeFunc(args ...string) error {
 	}
 	executablePath, err := FindExecutable(functionName)
 	if err != nil {
-		fmt.Printf("%s", err.Error())
+		fmt.Printf("%s\n", err.Error())
 		return nil
 	}
 	fmt.Printf("%s is %s\n", functionName, executablePath)
