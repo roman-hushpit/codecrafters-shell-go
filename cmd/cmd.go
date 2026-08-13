@@ -20,7 +20,7 @@ func init() {
 func typeFunc(args ...string) error {
 	functionName := args[0]
 	if _, ok := BuiltinsMap[functionName]; ok {
-		fmt.Printf("%s is a shall builtin\n", functionName)
+		fmt.Printf("%s is a shell builtin\n", functionName)
 		return nil
 	}
 	fmt.Printf("%s: not found\n", functionName)
