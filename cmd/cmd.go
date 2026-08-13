@@ -24,23 +24,12 @@ func typeFunc(args ...string) error {
 		fmt.Printf("%s is a shell builtin\n", functionName)
 		return nil
 	}
-	env, b := os.LookupEnv(`PATH`)
-	if !b {
-		fmt.Printf("%s: not found\n", functionName)
+	executablePath, err := FindExecutable(functionName)
+	if err != nil {
+		fmt.Printf("%s", err.Error())
 		return nil
 	}
-
-	for _, path := range strings.Split(env, ":") {
-		fullPath := path + "/" + functionName
-		if fileInfo, err := os.Stat(fullPath); err == nil {
-			if fileInfo.Mode().Perm()&0111 != 0 {
-				fmt.Printf("%s is %s\n", functionName, fullPath)
-				return nil
-			}
-		}
-	}
-
-	fmt.Printf("%s: not found\n", functionName)
+	fmt.Printf("%s is %s\n", functionName, executablePath)
 	return nil
 }
 
@@ -52,4 +41,23 @@ func echoFunc(args ...string) error {
 func exitFunc(args ...string) error {
 	os.Exit(0)
 	return nil
+}
+
+func FindExecutable(commandName string) (string, error) {
+
+	env, b := os.LookupEnv(`PATH`)
+	if !b {
+		return "", fmt.Errorf("%s: not found", commandName)
+	}
+
+	for _, path := range strings.Split(env, ":") {
+		fullPath := path + "/" + commandName
+		if fileInfo, err := os.Stat(fullPath); err == nil {
+			if fileInfo.Mode().Perm()&0111 != 0 {
+				return fullPath, nil
+			}
+		}
+	}
+
+	return "", fmt.Errorf("%s: not found", commandName)
 }
