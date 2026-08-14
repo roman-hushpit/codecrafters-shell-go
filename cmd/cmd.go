@@ -16,13 +16,24 @@ func init() {
 		"echo": echoFunc,
 		"type": typeFunc,
 		"pwd":  pwdFunc,
+		"cd":   cdFunc,
 	}
+}
+
+func cdFunc(args ...string) error {
+	dir := args[0]
+	err := os.Chdir(dir)
+	if err != nil {
+		fmt.Printf("%s: No such file or directory\n", dir)
+		return nil
+	}
+	return nil
 }
 
 func pwdFunc(args ...string) error {
 	dir, err := os.Getwd()
 	if err != nil {
-	 return err
+		return err
 	}
 	fmt.Printf("%s\n", dir)
 	return nil
