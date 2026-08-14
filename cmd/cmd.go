@@ -15,7 +15,17 @@ func init() {
 		"exit": exitFunc,
 		"echo": echoFunc,
 		"type": typeFunc,
+		"pwd":  pwdFunc,
 	}
+}
+
+func pwdFunc(args ...string) error {
+	dir, err := os.Getwd()
+	if err != nil {
+	 return err
+	}
+	fmt.Printf("%s\n", dir)
+	return nil
 }
 
 func typeFunc(args ...string) error {
