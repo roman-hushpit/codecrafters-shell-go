@@ -22,6 +22,14 @@ func init() {
 
 func cdFunc(args ...string) error {
 	dir := args[0]
+	if dir == "~" {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return err
+		}
+		_ = os.Chdir(homeDir)
+		return nil
+	}
 	err := os.Chdir(dir)
 	if err != nil {
 		fmt.Printf("%s: No such file or directory\n", dir)
