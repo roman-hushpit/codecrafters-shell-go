@@ -39,7 +39,7 @@ func (p *Parser) Parse(input string) {
 				index++
 			}
 		default:
-			for index < len(input) && input[index] != ' ' && input[index] != '\'' {
+			for index < len(input) && input[index] != ' ' && input[index] != '\'' && input[index] != '"' {
 				current += string(input[index])
 				index++
 			}
