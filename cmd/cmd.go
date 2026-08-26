@@ -67,7 +67,8 @@ func typeFunc(commandParameters string) error {
 func echoFunc(commandParameters string) error {
 	p := parser.NewParser()
 	p.Parse(commandParameters)
-	p.EchoTokens()
+	formatedTokens := p.FormatTokens()
+	fmt.Printf("%s\n", formatedTokens)
 	return nil
 }
 

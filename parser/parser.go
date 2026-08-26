@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -80,9 +79,10 @@ func (p *Parser) parseSingleQuoteToken(s string) (Token, int) {
 	return SingleQuoteToken{value: s[:index]}, index + 2
 }
 
-func (p *Parser) EchoTokens() {
+func (p *Parser) FormatTokens() string {
+	var content strings.Builder
 	for _, token := range p.tokens {
-		fmt.Print(token.Value())
+		content.WriteString(token.Value())
 	}
-	fmt.Print("\n")
+	return content.String()
 }

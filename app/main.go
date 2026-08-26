@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/codecrafters-io/shell-starter-go/cmd"
+	"github.com/codecrafters-io/shell-starter-go/parser"
 )
 
 func main() {
@@ -29,7 +30,9 @@ func main() {
 					fmt.Printf("%s: command not found\n", command)
 					continue
 				}
-				command := exec.Command(commandName, strings.Split(commandArgumentsString, " ")...)
+				newParser := parser.NewParser()
+				newParser.Parse(commandArgumentsString)
+				command := exec.Command(commandName, newParser.FormatTokens())
 				command.Stderr = os.Stderr
 				command.Stdout = os.Stdout
 				err = command.Run()
