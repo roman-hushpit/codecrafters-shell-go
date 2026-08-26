@@ -37,7 +37,7 @@ func main() {
 					continue
 				}
 			} else {
-				err := fnc(arguments[1:]...)
+				err := fnc(commandArgumentsString)
 				if err != nil {
 				}
 			}
