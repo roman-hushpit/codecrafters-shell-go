@@ -28,6 +28,10 @@ func (p *Parser) Parse(input string) {
 			token, nextIndex := p.parseSingleQuoteArg(input[index+1:])
 			current += token
 			index += nextIndex
+		case '"':
+			token, nextIndex := p.parseDoubleQuoteArg(input[index+1:])
+			current += token
+			index += nextIndex
 		case ' ':
 			p.args = append(p.args, current)
 			current = ""
@@ -46,6 +50,18 @@ func (p *Parser) Parse(input string) {
 
 func (p *Parser) parseSingleQuoteArg(s string) (string, int) {
 	index := strings.Index(s, "'")
+	if index == -1 {
+		spaceIndex := strings.Index(s, " ")
+		if spaceIndex == -1 {
+			return s, len(s)
+		}
+		return s[:spaceIndex], spaceIndex + 1
+	}
+	return s[:index], index + 2
+}
+
+func (p *Parser) parseDoubleQuoteArg(s string) (string, int) {
+	index := strings.Index(s, "\"")
 	if index == -1 {
 		spaceIndex := strings.Index(s, " ")
 		if spaceIndex == -1 {
