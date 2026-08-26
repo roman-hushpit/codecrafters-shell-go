@@ -32,6 +32,10 @@ func (p *Parser) Parse(input string) {
 			token, nextIndex := p.parseDoubleQuoteArg(input[index+1:])
 			current += token
 			index += nextIndex
+		case '\\':
+			index++
+			current += string(input[index])
+			index++
 		case ' ':
 			p.args = append(p.args, current)
 			current = ""
@@ -39,9 +43,15 @@ func (p *Parser) Parse(input string) {
 				index++
 			}
 		default:
-			for index < len(input) && input[index] != ' ' && input[index] != '\'' && input[index] != '"' {
-				current += string(input[index])
-				index++
+		loop:
+			for index < len(input) {
+				switch input[index] {
+				case ' ', '"', '\'', '\\':
+					break loop
+				default:
+					current += string(input[index])
+					index++
+				}
 			}
 		}
 	}
