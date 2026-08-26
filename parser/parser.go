@@ -4,39 +4,16 @@ import (
 	"strings"
 )
 
-type Token interface {
-	Value() string
-}
-
-type StringToken struct {
-	value string
-}
-
-type SpaceToken struct {
-}
-
-func (s SpaceToken) Value() string {
-	return " "
-}
-
-func (s StringToken) Value() string {
-	return s.value
-}
-
-type SingleQuoteToken struct {
-	value string
-}
-
-func (s SingleQuoteToken) Value() string {
-	return s.value
-}
-
 type Parser struct {
-	tokens []Token
+	args []string
 }
 
 func NewParser() *Parser {
-	return &Parser{tokens: []Token{}}
+	return &Parser{args: []string{}}
+}
+
+func (p *Parser) Args() []string {
+	return p.args
 }
 
 func (p *Parser) Parse(input string) {
@@ -44,45 +21,41 @@ func (p *Parser) Parse(input string) {
 		return
 	}
 	index := 0
+	current := ""
 	for index < len(input) {
 		switch input[index] {
 		case '\'':
-			token, nextIndex := p.parseSingleQuoteToken(input[index+1:])
-			p.tokens = append(p.tokens, token)
+			token, nextIndex := p.parseSingleQuoteArg(input[index+1:])
+			current += token
 			index += nextIndex
 		case ' ':
-			p.tokens = append(p.tokens, SpaceToken{})
-			index++
+			p.args = append(p.args, current)
+			current = ""
 			for index < len(input) && input[index] == ' ' {
 				index++
 			}
 		default:
-			word := ""
 			for index < len(input) && input[index] != ' ' && input[index] != '\'' {
-				word += string(input[index])
+				current += string(input[index])
 				index++
 			}
-			p.tokens = append(p.tokens, StringToken{value: word})
 		}
 	}
+	p.args = append(p.args, current)
 }
 
-func (p *Parser) parseSingleQuoteToken(s string) (Token, int) {
+func (p *Parser) parseSingleQuoteArg(s string) (string, int) {
 	index := strings.Index(s, "'")
 	if index == -1 {
 		spaceIndex := strings.Index(s, " ")
 		if spaceIndex == -1 {
-			return StringToken{value: s}, len(s)
+			return s, len(s)
 		}
-		return StringToken{value: s[:spaceIndex]}, spaceIndex + 1
+		return s[:spaceIndex], spaceIndex + 1
 	}
-	return SingleQuoteToken{value: s[:index]}, index + 2
+	return s[:index], index + 2
 }
 
-func (p *Parser) FormatTokens() string {
-	var content strings.Builder
-	for _, token := range p.tokens {
-		content.WriteString(token.Value())
-	}
-	return content.String()
+func (p *Parser) FormatArgs() string {
+	return strings.Join(p.args, " ")
 }

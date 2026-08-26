@@ -32,7 +32,7 @@ func main() {
 				}
 				newParser := parser.NewParser()
 				newParser.Parse(commandArgumentsString)
-				command := exec.Command(commandName, newParser.FormatTokens())
+				command := exec.Command(commandName, newParser.Args()...)
 				command.Stderr = os.Stderr
 				command.Stdout = os.Stdout
 				err = command.Run()
