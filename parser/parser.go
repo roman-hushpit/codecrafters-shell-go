@@ -71,15 +71,23 @@ func (p *Parser) parseSingleQuoteArg(s string) (string, int) {
 }
 
 func (p *Parser) parseDoubleQuoteArg(s string) (string, int) {
-	index := strings.Index(s, "\"")
-	if index == -1 {
-		spaceIndex := strings.Index(s, " ")
-		if spaceIndex == -1 {
-			return s, len(s)
+	sequence := strings.Builder{}
+	i := 0
+loop:
+	for i < len(s) {
+		symbol := s[i]
+		switch symbol {
+		case '\\':
+			sequence.WriteString(string(s[i+1]))
+			i += 2
+		case '"':
+			break loop
+		default:
+			sequence.WriteByte(s[i])
+			i++
 		}
-		return s[:spaceIndex], spaceIndex + 1
 	}
-	return s[:index], index + 2
+	return sequence.String(), i + 2
 }
 
 func (p *Parser) FormatArgs() string {
