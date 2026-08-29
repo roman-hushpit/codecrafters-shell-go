@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strings"
 
 	"github.com/codecrafters-io/shell-starter-go/cmd"
 	"github.com/codecrafters-io/shell-starter-go/parser"
@@ -17,12 +16,10 @@ func main() {
 		input := bufio.NewScanner(bufio.NewReader(os.Stdin))
 		if input.Scan() {
 			command := input.Text()
-			arguments := strings.SplitN(command, " ", 2)
+			newParser := parser.NewParser()
+			newParser.Parse(command)
+			arguments := newParser.Args()
 			commandName := arguments[0]
-			var commandArgumentsString string
-			if len(arguments) > 1 {
-				commandArgumentsString = arguments[1]
-			}
 			fnc, ok := cmd.BuiltinsMap[commandName]
 			if !ok {
 				_, err := cmd.FindExecutable(commandName)
@@ -30,9 +27,8 @@ func main() {
 					fmt.Printf("%s: command not found\n", command)
 					continue
 				}
-				newParser := parser.NewParser()
-				newParser.Parse(commandArgumentsString)
-				command := exec.Command(commandName, newParser.Args()...)
+
+				command := exec.Command(commandName, arguments[1:]...)
 				command.Stderr = os.Stderr
 				command.Stdout = os.Stdout
 				err = command.Run()
@@ -40,7 +36,7 @@ func main() {
 					continue
 				}
 			} else {
-				err := fnc(commandArgumentsString)
+				err := fnc(arguments[1:]...)
 				if err != nil {
 				}
 			}

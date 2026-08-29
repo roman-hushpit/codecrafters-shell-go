@@ -4,16 +4,14 @@ import (
 	"fmt"
 	"os"
 	"strings"
-
-	"github.com/codecrafters-io/shell-starter-go/parser"
 )
 
 type Builtins map[string]func() error
 
-var BuiltinsMap map[string]func(commandParameters string) error
+var BuiltinsMap map[string]func(commandParameters ...string) error
 
 func init() {
-	BuiltinsMap = map[string]func(commandParameters string) error{
+	BuiltinsMap = map[string]func(commandParameters ...string) error{
 		"exit": exitFunc,
 		"echo": echoFunc,
 		"type": typeFunc,
@@ -22,8 +20,8 @@ func init() {
 	}
 }
 
-func cdFunc(commandParameters string) error {
-	dir := commandParameters
+func cdFunc(commandParameters ...string) error {
+	dir := commandParameters[0]
 	if dir == "~" {
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
@@ -40,7 +38,7 @@ func cdFunc(commandParameters string) error {
 	return nil
 }
 
-func pwdFunc(_ string) error {
+func pwdFunc(_ ...string) error {
 	dir, err := os.Getwd()
 	if err != nil {
 		return err
@@ -49,8 +47,8 @@ func pwdFunc(_ string) error {
 	return nil
 }
 
-func typeFunc(commandParameters string) error {
-	functionName := commandParameters
+func typeFunc(commandParameters ...string) error {
+	functionName := commandParameters[0]
 	if _, ok := BuiltinsMap[functionName]; ok {
 		fmt.Printf("%s is a shell builtin\n", functionName)
 		return nil
@@ -64,15 +62,12 @@ func typeFunc(commandParameters string) error {
 	return nil
 }
 
-func echoFunc(commandParameters string) error {
-	p := parser.NewParser()
-	p.Parse(commandParameters)
-	formatedTokens := p.FormatArgs()
-	fmt.Printf("%s\n", formatedTokens)
+func echoFunc(commandParameters ...string) error {
+	fmt.Printf("%s\n", strings.Join(commandParameters, " "))
 	return nil
 }
 
-func exitFunc(_ string) error {
+func exitFunc(_ ...string) error {
 	os.Exit(0)
 	return nil
 }

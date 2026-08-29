@@ -89,7 +89,3 @@ loop:
 	}
 	return sequence.String(), i + 2
 }
-
-func (p *Parser) FormatArgs() string {
-	return strings.Join(p.args, " ")
-}
