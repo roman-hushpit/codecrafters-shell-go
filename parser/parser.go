@@ -55,6 +55,17 @@ func (p *Parser) Parse(input string) {
 				current += string(input[index])
 				index++
 			}
+		case '2':
+			if index+1 < len(input) && input[index+1] == '>' {
+				current = input[index : index+2]
+				p.args = append(p.args, current)
+				index++
+				index++
+				current = ""
+			} else {
+				current += string(input[index])
+				index++
+			}
 		case '>':
 			if current != "" {
 				p.args = append(p.args, current)

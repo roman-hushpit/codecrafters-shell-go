@@ -16,6 +16,14 @@ func ExecuteCommand(command *cmd.Command) {
 		defer file.Close()
 		context.Stdout = file
 	}
+	if command.StderrFile != "" {
+		file, err := os.OpenFile(command.StderrFile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
+		if err != nil {
+			return
+		}
+		defer file.Close()
+		context.Stderr = file
+	}
 	executable, ok := cmd.BuiltinsMap[command.Name]
 	if !ok {
 		externalCommand := &cmd.ExternalCommandExecutor{}

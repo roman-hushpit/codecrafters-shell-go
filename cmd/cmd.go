@@ -12,6 +12,7 @@ type Command struct {
 	Name       string
 	Args       []string
 	StdoutFile string
+	StderrFile string
 }
 
 type ExecutionContext struct {

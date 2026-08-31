@@ -16,6 +16,10 @@ func ProcessCommandArgs(args []string) *cmd.Command {
 			command.StdoutFile = args[index+1]
 			break
 		}
+		if args[index] == "2>" {
+			command.StderrFile = args[index+1]
+			break
+		}
 		command.Args = append(command.Args, args[index])
 	}
 
