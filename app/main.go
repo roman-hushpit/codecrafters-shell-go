@@ -2,6 +2,7 @@ package main
 
 import (
 	"io"
+	"os"
 	"strings"
 
 	"github.com/chzyer/readline"
@@ -10,16 +11,28 @@ import (
 	"github.com/codecrafters-io/shell-starter-go/processor"
 )
 
+type bellCompleter struct {
+	inner readline.AutoCompleter
+}
+
+func (b *bellCompleter) Do(line []rune, pos int) (newLine [][]rune, length int) {
+	newLine, length = b.inner.Do(line, pos)
+	if len(newLine) == 0 {
+		os.Stdout.Write([]byte{7}) // BEL character
+	}
+	return newLine, length
+}
+
 func main() {
 
-	var completer = readline.NewPrefixCompleter(
+	var base = readline.NewPrefixCompleter(
 		readline.PcItem("echo"),
 		readline.PcItem("exit"),
 	)
 
 	l, err := readline.NewEx(&readline.Config{
 		Prompt:          "$ ",
-		AutoComplete:    completer,
+		AutoComplete:    &bellCompleter{inner: base},
 		InterruptPrompt: "^C",
 		EOFPrompt:       "exit",
 	})
