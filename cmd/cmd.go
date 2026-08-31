@@ -2,26 +2,52 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
+	"os/exec"
 	"strings"
 )
 
-type Builtins map[string]func() error
+type Command struct {
+	Name       string
+	Args       []string
+	StdoutFile string
+}
 
-var BuiltinsMap map[string]func(commandParameters ...string) error
+type ExecutionContext struct {
+	Stdout io.Writer
+	Stderr io.Writer
+}
+
+type Executable interface {
+	Execute(c *Command, ctx *ExecutionContext) error
+}
+
+var BuiltinsMap map[string]Executable
 
 func init() {
-	BuiltinsMap = map[string]func(commandParameters ...string) error{
-		"exit": exitFunc,
-		"echo": echoFunc,
-		"type": typeFunc,
-		"pwd":  pwdFunc,
-		"cd":   cdFunc,
+	BuiltinsMap = map[string]Executable{
+		"exit": &ExitCommand{},
+		"echo": &EchoCommand{},
+		"type": &TypeCommand{},
+		"pwd":  &PwdCommand{},
+		"cd":   &CdCommand{},
 	}
 }
 
-func cdFunc(commandParameters ...string) error {
-	dir := commandParameters[0]
+type ExitCommand struct {
+}
+
+func (e *ExitCommand) Execute(_ *Command, ctx *ExecutionContext) error {
+	os.Exit(0)
+	return nil
+}
+
+type CdCommand struct {
+}
+
+func (cd CdCommand) Execute(c *Command, ctx *ExecutionContext) error {
+	dir := c.Args[0]
 	if dir == "~" {
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
@@ -32,43 +58,73 @@ func cdFunc(commandParameters ...string) error {
 	}
 	err := os.Chdir(dir)
 	if err != nil {
-		fmt.Printf("%s: No such file or directory\n", dir)
-		return nil
+		_, err := fmt.Fprintln(ctx.Stderr, fmt.Sprintf("%s: No such file or directory", dir))
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-func pwdFunc(_ ...string) error {
+type PwdCommand struct {
+}
+
+func (pwd PwdCommand) Execute(_ *Command, ctx *ExecutionContext) error {
 	dir, err := os.Getwd()
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s\n", dir)
+	_, err = fmt.Fprintln(ctx.Stdout, fmt.Sprintf("%s", dir))
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func typeFunc(commandParameters ...string) error {
-	functionName := commandParameters[0]
+type TypeCommand struct {
+}
+
+func (t TypeCommand) Execute(c *Command, ctx *ExecutionContext) error {
+	functionName := c.Args[0]
 	if _, ok := BuiltinsMap[functionName]; ok {
-		fmt.Printf("%s is a shell builtin\n", functionName)
-		return nil
+		_, err := fmt.Fprintln(ctx.Stdout, fmt.Sprintf("%s is a shell builtin", functionName))
+		return err
 	}
 	executablePath, err := FindExecutable(functionName)
 	if err != nil {
-		fmt.Printf("%s\n", err.Error())
+		_, err = fmt.Fprintln(ctx.Stdout, fmt.Sprintf("%s", err.Error()))
+		if err != nil {
+			return err
+		}
 		return nil
 	}
-	fmt.Printf("%s is %s\n", functionName, executablePath)
-	return nil
+	_, err = fmt.Fprintln(ctx.Stdout, fmt.Sprintf("%s is %s", functionName, executablePath))
+	return err
 }
 
-func echoFunc(commandParameters ...string) error {
-	fmt.Printf("%s\n", strings.Join(commandParameters, " "))
-	return nil
+type EchoCommand struct {
 }
 
-func exitFunc(_ ...string) error {
-	os.Exit(0)
+func (echo EchoCommand) Execute(c *Command, ctx *ExecutionContext) error {
+	_, err := fmt.Fprintln(ctx.Stdout, strings.Join(c.Args, " "))
+	return err
+}
+
+type ExternalCommandExecutor struct {
+}
+
+func (ext ExternalCommandExecutor) Execute(c *Command, ctx *ExecutionContext) error {
+	executable, err := FindExecutable(c.Name)
+	if err != nil {
+		return err
+	}
+	command := exec.Command(executable, c.Args...)
+	command.Stderr = ctx.Stderr
+	command.Stdout = ctx.Stdout
+	err = command.Run()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

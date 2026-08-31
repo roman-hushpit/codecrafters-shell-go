@@ -37,16 +37,36 @@ func (p *Parser) Parse(input string) {
 			current += string(input[index])
 			index++
 		case ' ':
-			p.args = append(p.args, current)
-			current = ""
+			if current != "" {
+				p.args = append(p.args, current)
+				current = ""
+			}
 			for index < len(input) && input[index] == ' ' {
 				index++
 			}
+		case '1':
+			if index+1 < len(input) && input[index+1] == '>' {
+				current = string(input[index+1])
+				p.args = append(p.args, current)
+				index++
+				index++
+				current = ""
+			} else {
+				current += string(input[index])
+				index++
+			}
+		case '>':
+			if current != "" {
+				p.args = append(p.args, current)
+				current = ""
+			}
+			p.args = append(p.args, ">")
+			index++
 		default:
 		loop:
 			for index < len(input) {
 				switch input[index] {
-				case ' ', '"', '\'', '\\':
+				case ' ', '"', '\'', '\\', '>':
 					break loop
 				default:
 					current += string(input[index])
@@ -55,7 +75,9 @@ func (p *Parser) Parse(input string) {
 			}
 		}
 	}
-	p.args = append(p.args, current)
+	if current != "" {
+		p.args = append(p.args, current)
+	}
 }
 
 func (p *Parser) parseSingleQuoteArg(s string) (string, int) {
