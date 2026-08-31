@@ -2,26 +2,14 @@ package main
 
 import (
 	"io"
-	"os"
 	"strings"
 
 	"github.com/chzyer/readline"
+	"github.com/codecrafters-io/shell-starter-go/autocomplete"
 	"github.com/codecrafters-io/shell-starter-go/executor"
 	"github.com/codecrafters-io/shell-starter-go/parser"
 	"github.com/codecrafters-io/shell-starter-go/processor"
 )
-
-type bellCompleter struct {
-	inner readline.AutoCompleter
-}
-
-func (b *bellCompleter) Do(line []rune, pos int) (newLine [][]rune, length int) {
-	newLine, length = b.inner.Do(line, pos)
-	if len(newLine) == 0 {
-		os.Stdout.Write([]byte{7}) // BEL character
-	}
-	return newLine, length
-}
 
 func main() {
 
@@ -32,7 +20,7 @@ func main() {
 
 	l, err := readline.NewEx(&readline.Config{
 		Prompt:          "$ ",
-		AutoComplete:    &bellCompleter{inner: base},
+		AutoComplete:    &autocomplete.ExtendedCompleter{Inner: base},
 		InterruptPrompt: "^C",
 		EOFPrompt:       "exit",
 	})
