@@ -37,6 +37,10 @@ func (b *ExtendedCompleter) Do(line []rune, pos int) (newLine [][]rune, length i
 			}
 
 		}
+		if len(possibleExecutables) == 1 {
+			possibleExecutables[0] = append(possibleExecutables[0], ' ')
+			return possibleExecutables, pos - wordStart
+		}
 		if len(possibleExecutables) > 0 {
 			return possibleExecutables, pos - wordStart
 		}
