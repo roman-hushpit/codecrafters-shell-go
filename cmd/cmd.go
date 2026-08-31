@@ -114,11 +114,11 @@ type ExternalCommandExecutor struct {
 }
 
 func (ext ExternalCommandExecutor) Execute(c *Command, ctx *ExecutionContext) error {
-	executable, err := FindExecutable(c.Name)
+	_, err := FindExecutable(c.Name)
 	if err != nil {
 		return err
 	}
-	command := exec.Command(executable, c.Args...)
+	command := exec.Command(c.Name, c.Args...)
 	command.Stderr = ctx.Stderr
 	command.Stdout = ctx.Stdout
 	err = command.Run()
@@ -129,7 +129,6 @@ func (ext ExternalCommandExecutor) Execute(c *Command, ctx *ExecutionContext) er
 }
 
 func FindExecutable(commandName string) (string, error) {
-
 	env, b := os.LookupEnv(`PATH`)
 	if !b {
 		return "", fmt.Errorf("%s: not found", commandName)
