@@ -9,15 +9,16 @@ import (
 func ExecuteCommand(command *cmd.Command) {
 	context := &cmd.ExecutionContext{Stderr: os.Stderr, Stdout: os.Stdout}
 	if command.StdoutFile != "" {
-		file, err := os.OpenFile(command.StdoutFile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
+		file, err := openRedirectFile(command.StdoutFile, command.AppendOut)
 		if err != nil {
 			return
 		}
 		defer file.Close()
 		context.Stdout = file
 	}
+
 	if command.StderrFile != "" {
-		file, err := os.OpenFile(command.StderrFile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
+		file, err := openRedirectFile(command.StderrFile, command.AppendErr)
 		if err != nil {
 			return
 		}
@@ -37,4 +38,16 @@ func ExecuteCommand(command *cmd.Command) {
 	if err != nil {
 		return
 	}
+}
+
+func openRedirectFile(path string, appendMode bool) (*os.File, error) {
+	flags := os.O_CREATE | os.O_WRONLY
+
+	if appendMode {
+		flags |= os.O_APPEND
+	} else {
+		flags |= os.O_TRUNC
+	}
+
+	return os.OpenFile(path, flags, 0666)
 }

@@ -12,16 +12,24 @@ func ProcessCommandArgs(args []string) *cmd.Command {
 	}
 	command.Name = args[0]
 	for index := 1; index < len(args); index++ {
-		if args[index] == ">" || args[index] == "1>" {
+		switch args[index] {
+		case ">", "1>":
 			command.StdoutFile = args[index+1]
-			break
-		}
-		if args[index] == "2>" {
+			index++
+		case "2>":
 			command.StderrFile = args[index+1]
-			break
+			index++
+		case "1>>", ">>":
+			command.StdoutFile = args[index+1]
+			command.AppendOut = true
+			index++
+		case "2>>":
+			command.StderrFile = args[index+1]
+			command.AppendErr = true
+			index++
+		default:
+			command.Args = append(command.Args, args[index])
 		}
-		command.Args = append(command.Args, args[index])
 	}
-
 	return command
 }

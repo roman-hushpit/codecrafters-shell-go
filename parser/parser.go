@@ -44,24 +44,19 @@ func (p *Parser) Parse(input string) {
 			for index < len(input) && input[index] == ' ' {
 				index++
 			}
-		case '1':
+		case '1', '2':
 			if index+1 < len(input) && input[index+1] == '>' {
-				current = string(input[index+1])
-				p.args = append(p.args, current)
-				index++
-				index++
-				current = ""
-			} else {
-				current += string(input[index])
-				index++
-			}
-		case '2':
-			if index+1 < len(input) && input[index+1] == '>' {
-				current = input[index : index+2]
-				p.args = append(p.args, current)
-				index++
-				index++
-				current = ""
+				if index+2 < len(input) && input[index+2] == '>' {
+					current = input[index : index+3]
+					p.args = append(p.args, current)
+					index += 3
+					current = ""
+				} else {
+					current = input[index : index+2]
+					p.args = append(p.args, current)
+					index += 2
+					current = ""
+				}
 			} else {
 				current += string(input[index])
 				index++
@@ -71,8 +66,13 @@ func (p *Parser) Parse(input string) {
 				p.args = append(p.args, current)
 				current = ""
 			}
-			p.args = append(p.args, ">")
-			index++
+			if index+1 < len(input) && input[index+1] == '>' {
+				p.args = append(p.args, ">>")
+				index += 2
+			} else {
+				p.args = append(p.args, ">")
+				index++
+			}
 		default:
 		loop:
 			for index < len(input) {

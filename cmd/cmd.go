@@ -11,8 +11,11 @@ import (
 type Command struct {
 	Name       string
 	Args       []string
-	StdoutFile string
-	StderrFile string
+	StdoutFile  string
+	AppendOut bool
+
+	StderrFile  string
+	AppendErr bool
 }
 
 type ExecutionContext struct {
