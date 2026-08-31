@@ -116,6 +116,7 @@ type ExternalCommandExecutor struct {
 func (ext ExternalCommandExecutor) Execute(c *Command, ctx *ExecutionContext) error {
 	_, err := FindExecutable(c.Name)
 	if err != nil {
+		_, err = fmt.Fprintln(ctx.Stdout, err.Error())
 		return err
 	}
 	command := exec.Command(c.Name, c.Args...)
