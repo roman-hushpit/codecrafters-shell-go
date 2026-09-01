@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 
 	"github.com/chzyer/readline"
@@ -53,6 +54,10 @@ func (b *ExtendedCompleter) Do(line []rune, pos int) (newLine [][]rune, length i
 			}
 
 		}
+		slices.SortFunc(possibleExecutables, func(a, b []rune) int {
+			return slices.Compare(a, b)
+		})
+
 		if len(possibleExecutables) == 1 || (len(possibleExecutables) > 1 && b.tabCount > 1) {
 			possibleExecutables[0] = append(possibleExecutables[0], ' ')
 			return possibleExecutables, pos - wordStart
