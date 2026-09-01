@@ -26,18 +26,26 @@ func (b *ExtendedCompleter) Do(line []rune, pos int) (newLine [][]rune, length i
 	}
 	newLine, length = b.Inner.Do(line, pos)
 
-	if len(newLine) == 1 || (len(newLine) > 1 && b.tabCount > 1) {
+	if len(newLine) == 1 {
 		return newLine, length
+	} else if len(newLine) > 1 && b.tabCount > 1 {
+		// print candidates ourselves, then hand back the line unchanged
+		// so the library redraws prompt + line as if inserting a single match
+		names := make([]string, len(newLine))
+		for i, r := range newLine {
+			names[i] = string(line[0:pos]) + string(r)
+		}
+		os.Stdout.WriteString("\r\n" + strings.Join(names, "  ") + "\r\n")
+		return [][]rune{line[pos:]}, pos
 	} else if len(newLine) > 1 && b.tabCount == 1 {
-		os.Stdout.Write([]byte{7}) // BEL character
-		var empty [][]rune
-		return empty, 0
+		os.Stdout.Write([]byte{7})
+		return [][]rune{}, 0
 	}
 
 	if len(newLine) == 0 && pos > 0 {
 		env, found := os.LookupEnv(`PATH`)
 		if !found {
-			os.Stdout.Write([]byte{7}) // BEL character
+			os.Stdout.Write([]byte{7})
 			return newLine, length
 		}
 		wordStart := 0
@@ -53,7 +61,6 @@ func (b *ExtendedCompleter) Do(line []rune, pos int) (newLine [][]rune, length i
 					possibleExecutables = append(possibleExecutables, []rune(after))
 				}
 			}
-
 		}
 		slices.SortFunc(possibleExecutables, func(a, b []rune) int {
 			return slices.Compare(a, b)
@@ -63,16 +70,20 @@ func (b *ExtendedCompleter) Do(line []rune, pos int) (newLine [][]rune, length i
 			possibleExecutables[0] = append(possibleExecutables[0], ' ')
 			return possibleExecutables, pos - wordStart
 		} else if len(possibleExecutables) > 1 && b.tabCount > 1 {
-			return possibleExecutables, pos - wordStart
+			names := make([]string, len(possibleExecutables))
+			for i, r := range possibleExecutables {
+				names[i] = string(prefix) + string(r)
+			}
+			os.Stdout.WriteString("\r\n" + strings.Join(names, "  ") + "\r\n")
+			return [][]rune{line[pos:]}, pos
 		} else {
-			os.Stdout.Write([]byte{7}) // BEL character
-			var empty [][]rune
-			return empty, 0
+			os.Stdout.Write([]byte{7})
+			return [][]rune{}, 0
 		}
 	}
 
 	if len(newLine) == 0 {
-		os.Stdout.Write([]byte{7}) // BEL character
+		os.Stdout.Write([]byte{7})
 	}
 	return newLine, length
 }
