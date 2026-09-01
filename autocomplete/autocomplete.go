@@ -12,6 +12,7 @@ import (
 
 type ExtendedCompleter struct {
 	Inner      readline.AutoCompleter
+	Instance   *readline.Instance
 	tabCount   int
 	lastPrefix string
 }
@@ -58,8 +59,10 @@ func (b *ExtendedCompleter) Do(line []rune, pos int) (newLine [][]rune, length i
 			return slices.Compare(a, b)
 		})
 
-		if len(possibleExecutables) == 1 || (len(possibleExecutables) > 1 && b.tabCount > 1) {
+		if len(possibleExecutables) == 1 {
 			possibleExecutables[0] = append(possibleExecutables[0], ' ')
+			return possibleExecutables, pos - wordStart
+		} else if len(possibleExecutables) > 1 && b.tabCount > 1 {
 			return possibleExecutables, pos - wordStart
 		} else {
 			os.Stdout.Write([]byte{7}) // BEL character

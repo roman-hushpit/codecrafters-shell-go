@@ -18,12 +18,17 @@ func main() {
 		readline.PcItem("exit"),
 	)
 
+	completer := &autocomplete.ExtendedCompleter{Inner: base}
+
 	l, err := readline.NewEx(&readline.Config{
 		Prompt:          "$ ",
-		AutoComplete:    &autocomplete.ExtendedCompleter{Inner: base},
+		AutoComplete:    completer,
 		InterruptPrompt: "^C",
 		EOFPrompt:       "exit",
 	})
+
+	completer.Instance = l
+
 	if err != nil {
 		panic(err)
 	}
