@@ -10,11 +10,27 @@ import (
 )
 
 type ExtendedCompleter struct {
-	Inner readline.AutoCompleter
+	Inner      readline.AutoCompleter
+	tabCount   int
+	lastPrefix string
 }
 
 func (b *ExtendedCompleter) Do(line []rune, pos int) (newLine [][]rune, length int) {
+	if string(line[0:pos]) != b.lastPrefix {
+		b.lastPrefix = string(line[0:pos])
+		b.tabCount = 1
+	} else {
+		b.tabCount++
+	}
 	newLine, length = b.Inner.Do(line, pos)
+
+	if len(newLine) == 1 || (len(newLine) > 1 && b.tabCount > 1) {
+		return newLine, length
+	} else if len(newLine) > 1 && b.tabCount == 1 {
+		os.Stdout.Write([]byte{7}) // BEL character
+		var empty [][]rune
+		return empty, 0
+	}
 
 	if len(newLine) == 0 && pos > 0 {
 		env, found := os.LookupEnv(`PATH`)
@@ -37,12 +53,13 @@ func (b *ExtendedCompleter) Do(line []rune, pos int) (newLine [][]rune, length i
 			}
 
 		}
-		if len(possibleExecutables) == 1 {
+		if len(possibleExecutables) == 1 || (len(possibleExecutables) > 1 && b.tabCount > 1) {
 			possibleExecutables[0] = append(possibleExecutables[0], ' ')
 			return possibleExecutables, pos - wordStart
-		}
-		if len(possibleExecutables) > 0 {
-			return possibleExecutables, pos - wordStart
+		} else {
+			os.Stdout.Write([]byte{7}) // BEL character
+			var empty [][]rune
+			return empty, 0
 		}
 	}
 
