@@ -18,6 +18,9 @@ type ExtendedCompleter struct {
 }
 
 func (b *ExtendedCompleter) Do(line []rune, pos int) (newLine [][]rune, length int) {
+	if len(line) == 0 {
+		return newLine, length
+	}
 	if string(line[0:pos]) != b.lastPrefix {
 		b.lastPrefix = string(line[0:pos])
 		b.tabCount = 1
@@ -31,13 +34,12 @@ func (b *ExtendedCompleter) Do(line []rune, pos int) (newLine [][]rune, length i
 	} else if len(newLine) > 1 && b.tabCount > 1 {
 		// print candidates ourselves, then hand back the line unchanged
 		// so the library redraws prompt + line as if inserting a single match
-		names := make([]string, len(newLine))
-		for i, r := range newLine {
-			names[i] = string(line[0:pos]) + string(r)
-		}
-		os.Stdout.WriteString("\r\n" + strings.Join(names, "  ") + "\r\n")
-		return [][]rune{line[pos:]}, pos
+		return printCandidates(line, pos, newLine)
 	} else if len(newLine) > 1 && b.tabCount == 1 {
+		prefix := commonPrefix(newLine)
+		if len(prefix) > 0 {
+			return [][]rune{prefix}, length
+		}
 		os.Stdout.Write([]byte{7})
 		return [][]rune{}, 0
 	}
@@ -70,12 +72,12 @@ func (b *ExtendedCompleter) Do(line []rune, pos int) (newLine [][]rune, length i
 			possibleExecutables[0] = append(possibleExecutables[0], ' ')
 			return possibleExecutables, pos - wordStart
 		} else if len(possibleExecutables) > 1 && b.tabCount > 1 {
-			names := make([]string, len(possibleExecutables))
-			for i, r := range possibleExecutables {
-				names[i] = string(prefix) + string(r)
+			return printCandidates(line, pos, possibleExecutables)
+		} else if len(possibleExecutables) > 1 && b.tabCount == 1 {
+			commonPrefixMatch := commonPrefix(newLine)
+			if len(prefix) > 0 {
+				return [][]rune{commonPrefixMatch}, length
 			}
-			os.Stdout.WriteString("\r\n" + strings.Join(names, "  ") + "\r\n")
-			return [][]rune{line[pos:]}, pos
 		} else {
 			os.Stdout.Write([]byte{7})
 			return [][]rune{}, 0
@@ -86,6 +88,38 @@ func (b *ExtendedCompleter) Do(line []rune, pos int) (newLine [][]rune, length i
 		os.Stdout.Write([]byte{7})
 	}
 	return newLine, length
+}
+
+func commonPrefix(runeSlices [][]rune) []rune {
+	if len(runeSlices) == 0 {
+		return []rune{}
+	}
+	prefix := runeSlices[0]
+	for i := 1; i < len(runeSlices); i++ {
+		prefix = commonPrefixTwo(prefix, runeSlices[i])
+		if len(prefix) == 0 {
+			return prefix
+		}
+	}
+	return prefix
+}
+
+func commonPrefixTwo(a, b []rune) []rune {
+	n := min(len(a), len(b))
+	i := 0
+	for i < n && a[i] == b[i] {
+		i++
+	}
+	return a[:i]
+}
+
+func printCandidates(line []rune, pos int, newLine [][]rune) ([][]rune, int) {
+	names := make([]string, len(newLine))
+	for i, r := range newLine {
+		names[i] = string(line[0:pos]) + string(r)
+	}
+	os.Stdout.WriteString("\r\n" + strings.Join(names, "  ") + "\r\n")
+	return [][]rune{line[pos:]}, pos
 }
 
 func dirExists(path string) bool {
