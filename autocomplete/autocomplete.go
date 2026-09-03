@@ -74,7 +74,7 @@ func (b *ExtendedCompleter) Do(line []rune, pos int) (newLine [][]rune, length i
 		} else if len(possibleExecutables) > 1 && b.tabCount > 1 {
 			return printCandidates(line, pos, possibleExecutables)
 		} else if len(possibleExecutables) > 1 && b.tabCount == 1 {
-			commonPrefixMatch := commonPrefix(newLine)
+			commonPrefixMatch := commonPrefix(possibleExecutables)
 			if len(prefix) > 0 {
 				return [][]rune{commonPrefixMatch}, length
 			}
