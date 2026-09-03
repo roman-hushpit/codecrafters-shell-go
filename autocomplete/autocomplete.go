@@ -45,7 +45,7 @@ func (b *ExtendedCompleter) Do(line []rune, pos int) (newLine [][]rune, length i
 	}
 
 	if len(newLine) == 0 && pos > 0 {
-		env, found := os.LookupEnv(`PATH`)
+		env, found := os.LookupEnv(`CUSTOM_PATH`)
 		if !found {
 			os.Stdout.Write([]byte{7})
 			return newLine, length
@@ -75,7 +75,7 @@ func (b *ExtendedCompleter) Do(line []rune, pos int) (newLine [][]rune, length i
 			return printCandidates(line, pos, possibleExecutables)
 		} else if len(possibleExecutables) > 1 && b.tabCount == 1 {
 			commonPrefixMatch := commonPrefix(possibleExecutables)
-			if len(prefix) > 0 {
+			if len(commonPrefixMatch) > 0 {
 				return [][]rune{commonPrefixMatch}, length
 			}
 			os.Stdout.Write([]byte{7})
