@@ -45,7 +45,7 @@ func (b *ExtendedCompleter) Do(line []rune, pos int) (newLine [][]rune, length i
 	}
 
 	if len(newLine) == 0 && pos > 0 {
-		env, found := os.LookupEnv(`CUSTOM_PATH`)
+		env, found := os.LookupEnv(`PATH`)
 		if !found {
 			os.Stdout.Write([]byte{7})
 			return newLine, length
