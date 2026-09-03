@@ -78,6 +78,8 @@ func (b *ExtendedCompleter) Do(line []rune, pos int) (newLine [][]rune, length i
 			if len(prefix) > 0 {
 				return [][]rune{commonPrefixMatch}, length
 			}
+			os.Stdout.Write([]byte{7})
+			return [][]rune{}, 0
 		} else {
 			os.Stdout.Write([]byte{7})
 			return [][]rune{}, 0
