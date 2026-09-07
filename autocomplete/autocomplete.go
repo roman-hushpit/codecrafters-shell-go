@@ -21,6 +21,39 @@ func (b *ExtendedCompleter) Do(line []rune, pos int) (newLine [][]rune, length i
 	if len(line) == 0 {
 		return newLine, length
 	}
+	if isFirstWord(line, pos) {
+		return b.handleCommand(line, pos, newLine, length)
+	}
+	lastInput := getLastWord(line, pos)
+	if len(lastInput) == 0 {
+		return newLine, length
+	}
+	autocompletes := completeFileName(lastInput)
+	if len(autocompletes) == 0 {
+		return newLine, length
+	}
+	return autocompletes, len(lastInput)
+}
+
+func completeFileName(prefix []rune) [][]rune {
+	var matches [][]rune
+	files, err := os.ReadDir(".")
+	if err != nil {
+		return [][]rune{}
+	}
+	for _, file := range files {
+		info, err := file.Info()
+		if err != nil {
+			continue
+		}
+		if after, ok := strings.CutPrefix(info.Name(), string(prefix)); ok {
+			matches = append(matches, []rune(after))
+		}
+	}
+	return matches
+}
+
+func (b *ExtendedCompleter) handleCommand(line []rune, pos int, newLine [][]rune, length int) ([][]rune, int) {
 	if string(line[0:pos]) != b.lastPrefix {
 		b.lastPrefix = string(line[0:pos])
 		b.tabCount = 1
@@ -90,6 +123,22 @@ func (b *ExtendedCompleter) Do(line []rune, pos int) (newLine [][]rune, length i
 		os.Stdout.Write([]byte{7})
 	}
 	return newLine, length
+}
+
+func getLastWord(line []rune, pos int) []rune {
+	if pos == 0 || line[pos-1] == ' ' {
+		return []rune{}
+	}
+
+	wordStart := pos - 1
+	for wordStart > 0 && line[wordStart-1] != ' ' {
+		wordStart--
+	}
+	return line[wordStart:pos]
+}
+
+func isFirstWord(line []rune, pos int) bool {
+	return pos == 0 || !strings.ContainsRune(string(line[0:pos]), ' ')
 }
 
 func commonPrefix(runeSlices [][]rune) []rune {
