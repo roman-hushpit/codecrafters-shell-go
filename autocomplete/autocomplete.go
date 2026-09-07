@@ -50,7 +50,11 @@ func completeFileName(prefix []rune) [][]rune {
 			matches = append(matches, []rune(after))
 		}
 	}
-	return matches
+
+	if len(matches) == 1 {
+		matches[0] = append(matches[0], ' ')
+	}
+ 	return matches
 }
 
 func (b *ExtendedCompleter) handleCommand(line []rune, pos int, newLine [][]rune, length int) ([][]rune, int) {
